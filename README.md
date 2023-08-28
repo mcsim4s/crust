@@ -1,0 +1,2 @@
+# crust
+rust learning project
