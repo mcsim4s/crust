@@ -1,4 +1,5 @@
-use std::io::{ErrorKind, Result};
+use crate::util::*;
+use std::io::Result;
 
 pub enum Position {
     Start,
@@ -31,30 +32,32 @@ impl Command {
         let mut split: std::str::SplitWhitespace<'_> = raw.split_whitespace();
         match split
             .next()
-            .ok_or(err(format!("Unexpected empty uci input")))?
+            .ok_or(errors::invalid_input(format!("Unexpected empty uci input")))?
         {
             "uci" => Result::Ok(Command::Uci),
             "isready" => Result::Ok(Command::IsReady),
             "ucinewgame" => Result::Ok(Command::NewGame),
             "position" => parse_position_command(split),
             "go" => parse_go_command(split),
-            other => Result::Err(err(format!("Unexpected uci input: '{}'", other))),
+            other => Result::Err(errors::invalid_input(format!(
+                "Unexpected uci input: '{}'",
+                other
+            ))),
         }
     }
 }
 
-fn err(msg: String) -> std::io::Error {
-    std::io::Error::new(ErrorKind::InvalidInput, msg)
-}
-
 fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command> {
-    let position: Position = match split
-        .next()
-        .ok_or(err(format!("Unexpected empty input after 'position'")))?
-    {
+    let position: Position = match split.next().ok_or(errors::invalid_input(format!(
+        "Unexpected empty input after 'position'"
+    )))? {
         "fen" => todo!(),
         "startpos" => Position::Start,
-        other => return Result::Err(err(format!("Unexpected input after 'position': '{other}'"))),
+        other => {
+            return Result::Err(errors::invalid_input(format!(
+                "Unexpected input after 'position': '{other}'"
+            )))
+        }
     };
     let moves: Vec<Move> = Vec::new();
     Result::Ok(Command::SetPosition { position, moves })
@@ -80,11 +83,13 @@ fn parse_go_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command>
 }
 
 fn parse_time(source: &mut std::str::SplitWhitespace<'_>) -> Result<u64> {
-    let time_string = source
-        .next()
-        .ok_or(err(format!("Unexpected time input after 'wtime'")))?;
-    let time_u64: u64 = time_string.parse().or(Result::Err(err(format!(
-        "wtime was not a number but '{time_string}'"
-    ))))?;
+    let time_string = source.next().ok_or(errors::invalid_input(format!(
+        "Unexpected time input after 'wtime'"
+    )))?;
+    let time_u64: u64 = time_string
+        .parse()
+        .or(Result::Err(errors::invalid_input(format!(
+            "wtime was not a number but '{time_string}'"
+        ))))?;
     Ok(time_u64)
 }

@@ -11,11 +11,11 @@ impl Engine {
         match command {
             Command::Uci => println!("uciok"),
             Command::IsReady => println!("readyok"),
-            Command::NewGame => (),
-            Command::SetPosition {
-                position: _,
-                moves: _,
-            } => (),
+            Command::NewGame => self.board = Board::new(),
+            Command::SetPosition { position, moves: _ } => match position {
+                crate::uci::Position::Start => self.board = Board::new(),
+                crate::uci::Position::Fen(fen) => self.board = Board::from_fen(fen)?,
+            },
             Command::Go(_) => println!("bestmove d7d5"),
         }
         Result::Ok(())
@@ -23,7 +23,7 @@ impl Engine {
 
     pub fn new() -> Engine {
         Engine {
-            board: Board::from_fen(String::from("")).expect("unexpected starting fen pos"),
+            board: Board::new(),
         }
     }
 }

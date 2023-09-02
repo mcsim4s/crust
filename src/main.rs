@@ -1,6 +1,7 @@
 pub mod engine;
 pub mod model;
 mod uci;
+mod util;
 
 use std::io;
 use uci::*;
