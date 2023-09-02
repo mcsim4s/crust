@@ -12,11 +12,20 @@ impl Engine {
             Command::Uci => println!("uciok"),
             Command::IsReady => println!("readyok"),
             Command::NewGame => self.board = Board::new(),
-            Command::SetPosition { position, moves: _ } => match position {
-                crate::uci::Position::Start => self.board = Board::new(),
-                crate::uci::Position::Fen(fen) => self.board = Board::from_fen(fen)?,
-            },
-            Command::Go(_) => println!("bestmove d7d5"),
+            Command::SetPosition { position, moves } => {
+                match position {
+                    crate::uci::Position::Start => self.board = Board::new(),
+                    crate::uci::Position::Fen(fen) => self.board = Board::from_fen(fen)?,
+                };
+                for mv in &moves {
+                    self.board.make_move(mv);
+                }
+            }
+            Command::Go(_) => {
+                let moves = self.board.gen_moves();
+                let best_move = moves[0];
+                println!("bestmove {best_move}");
+            }
         }
         Result::Ok(())
     }

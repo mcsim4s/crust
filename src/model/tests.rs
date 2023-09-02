@@ -53,4 +53,67 @@ fn notation_to_index() {
     assert_eq!(13, Move::square_notation_to_index("f7").unwrap());
     assert_eq!(14, Move::square_notation_to_index("g7").unwrap());
     assert_eq!(15, Move::square_notation_to_index("h7").unwrap());
+
+    assert_eq!(16, Move::square_notation_to_index("a6").unwrap());
+    assert_eq!(17, Move::square_notation_to_index("b6").unwrap());
+    assert_eq!(18, Move::square_notation_to_index("c6").unwrap());
+    assert_eq!(19, Move::square_notation_to_index("d6").unwrap());
+    assert_eq!(20, Move::square_notation_to_index("e6").unwrap());
+    assert_eq!(21, Move::square_notation_to_index("f6").unwrap());
+    assert_eq!(22, Move::square_notation_to_index("g6").unwrap());
+    assert_eq!(23, Move::square_notation_to_index("h6").unwrap());
+
+    assert_eq!(24, Move::square_notation_to_index("a5").unwrap());
+    assert_eq!(25, Move::square_notation_to_index("b5").unwrap());
+    assert_eq!(26, Move::square_notation_to_index("c5").unwrap());
+    assert_eq!(27, Move::square_notation_to_index("d5").unwrap());
+    assert_eq!(28, Move::square_notation_to_index("e5").unwrap());
+    assert_eq!(29, Move::square_notation_to_index("f5").unwrap());
+    assert_eq!(30, Move::square_notation_to_index("g5").unwrap());
+    assert_eq!(31, Move::square_notation_to_index("h5").unwrap());
+
+    assert_eq!(32, Move::square_notation_to_index("a4").unwrap());
+    assert_eq!(33, Move::square_notation_to_index("b4").unwrap());
+    assert_eq!(34, Move::square_notation_to_index("c4").unwrap());
+    assert_eq!(35, Move::square_notation_to_index("d4").unwrap());
+    assert_eq!(36, Move::square_notation_to_index("e4").unwrap());
+    assert_eq!(37, Move::square_notation_to_index("f4").unwrap());
+    assert_eq!(38, Move::square_notation_to_index("g4").unwrap());
+    assert_eq!(39, Move::square_notation_to_index("h4").unwrap());
+
+    assert_eq!(40, Move::square_notation_to_index("a3").unwrap());
+    assert_eq!(41, Move::square_notation_to_index("b3").unwrap());
+    assert_eq!(42, Move::square_notation_to_index("c3").unwrap());
+    assert_eq!(43, Move::square_notation_to_index("d3").unwrap());
+    assert_eq!(44, Move::square_notation_to_index("e3").unwrap());
+    assert_eq!(45, Move::square_notation_to_index("f3").unwrap());
+    assert_eq!(46, Move::square_notation_to_index("g3").unwrap());
+    assert_eq!(47, Move::square_notation_to_index("h3").unwrap());
+
+    assert_eq!(48, Move::square_notation_to_index("a2").unwrap());
+    assert_eq!(49, Move::square_notation_to_index("b2").unwrap());
+    assert_eq!(50, Move::square_notation_to_index("c2").unwrap());
+    assert_eq!(51, Move::square_notation_to_index("d2").unwrap());
+    assert_eq!(52, Move::square_notation_to_index("e2").unwrap());
+    assert_eq!(53, Move::square_notation_to_index("f2").unwrap());
+    assert_eq!(54, Move::square_notation_to_index("g2").unwrap());
+    assert_eq!(55, Move::square_notation_to_index("h2").unwrap());
+
+    assert_eq!(56, Move::square_notation_to_index("a1").unwrap());
+    assert_eq!(57, Move::square_notation_to_index("b1").unwrap());
+    assert_eq!(58, Move::square_notation_to_index("c1").unwrap());
+    assert_eq!(59, Move::square_notation_to_index("d1").unwrap());
+    assert_eq!(60, Move::square_notation_to_index("e1").unwrap());
+    assert_eq!(61, Move::square_notation_to_index("f1").unwrap());
+    assert_eq!(62, Move::square_notation_to_index("g1").unwrap());
+    assert_eq!(63, Move::square_notation_to_index("h1").unwrap());
+}
+
+#[test]
+fn index_to_notation() {
+    for i in 0..63 {
+        let notation = Move::index_to_square_notation(i).unwrap();
+        let reversed = Move::square_notation_to_index(&notation[..]).unwrap();
+        assert_eq!(i, reversed);
+    }
 }

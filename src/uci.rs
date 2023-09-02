@@ -1,14 +1,10 @@
+use crate::model;
 use crate::util::*;
 use std::io::Result;
 
 pub enum Position {
     Start,
     Fen(String),
-}
-
-pub struct Move {
-    from: String,
-    to: String,
 }
 
 pub struct GoCommand {
@@ -22,7 +18,7 @@ pub enum Command {
     NewGame,
     SetPosition {
         position: Position,
-        moves: Vec<Move>,
+        moves: Vec<model::Move>,
     },
     Go(GoCommand),
 }
@@ -59,7 +55,22 @@ fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Co
             )))
         }
     };
-    let moves: Vec<Move> = Vec::new();
+    let mut moves: Vec<model::Move> = Vec::new();
+    match split.next() {
+        Some("moves") => {
+            for move_notation in split {
+                let mv = model::Move::from_notation(&move_notation)?;
+                moves.push(mv);
+            }
+        }
+        Some(other) => {
+            return Result::Err(errors::invalid_input(format!(
+                "Expected moves input but got {other}"
+            )));
+        }
+        None => (),
+    }
+
     Result::Ok(Command::SetPosition { position, moves })
 }
 
