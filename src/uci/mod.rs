@@ -12,61 +12,66 @@ pub struct GoCommand {
     black_time: u64,
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct Move {
+    pub from: usize,
+    pub to: usize,
+    pub promote_to: Option<model::PieceKind>,
+}
+
 pub enum Command {
     Uci,
     IsReady,
     NewGame,
-    SetPosition {
-        position: Position,
-        moves: Vec<model::Move>,
-    },
+    SetPosition { position: Position, moves: Vec<Move> },
     Go(GoCommand),
+}
+
+impl Move {
+    pub fn from_notation(mv: &str) -> std::io::Result<Move> {
+        let from = square_notation_to_index(&mv[0..2])?;
+        let to = square_notation_to_index(&mv[2..4])?;
+        Ok(Move {
+            from,
+            to,
+            promote_to: None, //ToDo promotion
+        })
+    }
 }
 
 impl Command {
     pub fn parse(raw: &str) -> Result<Command> {
         let mut split: std::str::SplitWhitespace<'_> = raw.split_whitespace();
-        match split
-            .next()
-            .ok_or(errors::invalid_input(format!("Unexpected empty uci input")))?
-        {
+        match split.next().ok_or(errors::invalid_input(format!("Unexpected empty uci input")))? {
             "uci" => Result::Ok(Command::Uci),
             "isready" => Result::Ok(Command::IsReady),
             "ucinewgame" => Result::Ok(Command::NewGame),
             "position" => parse_position_command(split),
             "go" => parse_go_command(split),
-            other => Result::Err(errors::invalid_input(format!(
-                "Unexpected uci input: '{}'",
-                other
-            ))),
+            other => Result::Err(errors::invalid_input(format!("Unexpected uci input: '{}'", other))),
         }
     }
 }
 
 fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command> {
-    let position: Position = match split.next().ok_or(errors::invalid_input(format!(
-        "Unexpected empty input after 'position'"
-    )))? {
+    let position: Position = match split
+        .next()
+        .ok_or(errors::invalid_input(format!("Unexpected empty input after 'position'")))?
+    {
         "fen" => todo!(),
         "startpos" => Position::Start,
-        other => {
-            return Result::Err(errors::invalid_input(format!(
-                "Unexpected input after 'position': '{other}'"
-            )))
-        }
+        other => return Result::Err(errors::invalid_input(format!("Unexpected input after 'position': '{other}'"))),
     };
-    let mut moves: Vec<model::Move> = Vec::new();
+    let mut moves: Vec<Move> = Vec::new();
     match split.next() {
         Some("moves") => {
             for move_notation in split {
-                let mv = model::Move::from_notation(&move_notation)?;
+                let mv = Move::from_notation(&move_notation)?;
                 moves.push(mv);
             }
         }
         Some(other) => {
-            return Result::Err(errors::invalid_input(format!(
-                "Expected moves input but got {other}"
-            )));
+            return Result::Err(errors::invalid_input(format!("Expected moves input but got {other}")));
         }
         None => (),
     }
@@ -94,13 +99,11 @@ fn parse_go_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command>
 }
 
 fn parse_time(source: &mut std::str::SplitWhitespace<'_>) -> Result<u64> {
-    let time_string = source.next().ok_or(errors::invalid_input(format!(
-        "Unexpected time input after 'wtime'"
-    )))?;
-    let time_u64: u64 = time_string
-        .parse()
-        .or(Result::Err(errors::invalid_input(format!(
-            "wtime was not a number but '{time_string}'"
-        ))))?;
+    let time_string = source
+        .next()
+        .ok_or(errors::invalid_input(format!("Unexpected time input after 'wtime'")))?;
+    let time_u64: u64 = time_string.parse().or(Result::Err(errors::invalid_input(format!(
+        "wtime was not a number but '{time_string}'"
+    ))))?;
     Ok(time_u64)
 }

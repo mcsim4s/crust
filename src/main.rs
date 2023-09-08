@@ -7,6 +7,10 @@ use std::io;
 use uci::*;
 
 fn main() -> io::Result<()> {
+    let mut a: usize = 1;
+    a -= 10;
+    println!("{a}");
+
     let mut buffer = String::new();
     let mut engine = engine::Engine::new();
     loop {

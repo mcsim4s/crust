@@ -18,12 +18,12 @@ impl Engine {
                     crate::uci::Position::Fen(fen) => self.board = Board::from_fen(fen)?,
                 };
                 for mv in &moves {
-                    self.board.make_move(mv);
+                    self.board = self.board.make_uci_move(mv);
                 }
             }
             Command::Go(_) => {
                 let moves = self.board.gen_moves();
-                let best_move = moves[0];
+                let best_move = moves[0].to_notation();
                 println!("bestmove {best_move}");
             }
         }
@@ -31,8 +31,6 @@ impl Engine {
     }
 
     pub fn new() -> Engine {
-        Engine {
-            board: Board::new(),
-        }
+        Engine { board: Board::new() }
     }
 }
