@@ -1,9 +1,11 @@
-mod generator;
+pub mod generator;
+pub mod pieces;
 mod tests;
 
-use std::fmt::Display;
+use std::fmt::{Debug, Write};
 
 use crate::util::*;
+use pieces::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PromotionKind {
@@ -11,43 +13,6 @@ pub enum PromotionKind {
     Knight,
     Bishop,
     Quieen,
-}
-
-pub mod Pieces {
-    pub type Piece = u8;
-    pub const NONE: u8 = 0;
-    pub const KING: u8 = 1;
-    pub const PAWN: u8 = 2;
-    pub const KNIGHT: u8 = 3;
-    pub const BISHOP: u8 = 4;
-    pub const ROOK: u8 = 5;
-    pub const QUEEN: u8 = 6;
-
-    pub const WHITE: u8 = 8;
-    pub const BLACK: u8 = 16;
-
-    fn new(kind: Piece, color: Piece) -> Piece {
-        kind | color
-    }
-
-    pub fn pawn(color: u8) -> Piece {
-        new(PAWN, color)
-    }
-    pub fn rook(color: u8) -> Piece {
-        new(ROOK, color)
-    }
-    pub fn knight(color: u8) -> Piece {
-        new(KNIGHT, color)
-    }
-    pub fn bishop(color: u8) -> Piece {
-        new(BISHOP, color)
-    }
-    pub fn quieen(color: u8) -> Piece {
-        new(QUEEN, color)
-    }
-    pub fn king(color: u8) -> Piece {
-        new(KING, color)
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -59,7 +24,7 @@ pub struct Move {
 
 #[derive(Clone, Copy, Debug)]
 pub struct Board {
-    pub squares: [Pieces::Piece; 64],
+    pub squares: [u8; 64],
     pub white_is_active: bool,
 }
 
@@ -81,7 +46,11 @@ impl Move {
     }
 }
 
-use Pieces::*;
+impl Debug for Move {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_notation().as_str())
+    }
+}
 
 impl Board {
     pub fn new() -> Board {
@@ -90,7 +59,7 @@ impl Board {
 
     pub fn from_fen(fen: String) -> std::io::Result<Board> {
         let mut fen = fen.chars();
-        let mut squeres: [Piece; 64] = [0; 64];
+        let mut squeres: [u8; 64] = [0; 64];
         let mut current = 0;
         for symbol in &mut fen {
             match symbol {

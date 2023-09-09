@@ -1,34 +1,40 @@
+use std::ops::Div;
+
 use crate::model::*;
 
 impl Board {
-    pub fn gen_moves(&self) -> Box<[Move]> {
-        let mut buffer = [Move::null(); 218];
-        let mut actual_count = 0;
-        for (pos, &square) in self.squares.iter().enumerate() {
-            match square {
-                Some(piece) if piece.color == self.active_color => match piece.kind {
-                    Pawn => {
-                        buffer[actual_count] = Move {
-                            from: pos,
-                            to: pos + 8,
-                            promote_to: None,
-                        };
-                        actual_count += 1;
-                    }
-                    Rook => (),
-                    Knight => (),
-                    Bishop => (),
-                    Quieen => (),
-                    King => (),
-                },
-                _ => (),
+    pub fn active_color(&self) -> u8 {
+        if self.white_is_active {
+            WHITE
+        } else {
+            BLACK
+        }
+    }
+
+    pub fn gen_moves(&self) -> Vec<Move> {
+        let mut buffer: Vec<Move> = Vec::new();
+        let active_color = self.active_color();
+        for (pos, &piece) in self.squares.iter().enumerate() {
+            if piece.is_color(active_color) {
+                if piece.is_pawn() {
+                    buffer.push(Move {
+                        from: pos,
+                        to: pos + 8,
+                        promote_to: None,
+                    });
+                }
+                if piece.is_king() {
+                    let mut king_moves = self.king_moves(pos);
+                    dbg!(&king_moves);
+                    buffer.append(&mut king_moves);
+                }
             }
         }
 
-        Box::from(&buffer[..actual_count])
+        buffer
     }
 
-    fn king_moves(&self, king_index: usize) -> Box<[Move]> {
+    fn king_moves(&self, king_index: usize) -> Vec<Move> {
         let candidates: [usize; 8] = [
             king_index - 9,
             king_index - 8,
