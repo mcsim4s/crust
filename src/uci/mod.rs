@@ -16,7 +16,7 @@ pub struct GoCommand {
 pub struct Move {
     pub from: usize,
     pub to: usize,
-    pub promote_to: Option<model::PieceKind>,
+    pub promote_to: Option<model::PromotionKind>,
 }
 
 pub enum Command {

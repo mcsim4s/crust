@@ -6,67 +6,64 @@ use std::fmt::Display;
 use crate::util::*;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PieceKind {
-    Pawn,
+pub enum PromotionKind {
     Rook,
     Knight,
     Bishop,
     Quieen,
-    King,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PieceColor {
-    White,
-    Black,
-}
+pub mod Pieces {
+    pub type Piece = u8;
+    pub const NONE: u8 = 0;
+    pub const KING: u8 = 1;
+    pub const PAWN: u8 = 2;
+    pub const KNIGHT: u8 = 3;
+    pub const BISHOP: u8 = 4;
+    pub const ROOK: u8 = 5;
+    pub const QUEEN: u8 = 6;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Piece {
-    kind: PieceKind,
-    color: PieceColor,
+    pub const WHITE: u8 = 8;
+    pub const BLACK: u8 = 16;
+
+    fn new(kind: Piece, color: Piece) -> Piece {
+        kind | color
+    }
+
+    pub fn pawn(color: u8) -> Piece {
+        new(PAWN, color)
+    }
+    pub fn rook(color: u8) -> Piece {
+        new(ROOK, color)
+    }
+    pub fn knight(color: u8) -> Piece {
+        new(KNIGHT, color)
+    }
+    pub fn bishop(color: u8) -> Piece {
+        new(BISHOP, color)
+    }
+    pub fn quieen(color: u8) -> Piece {
+        new(QUEEN, color)
+    }
+    pub fn king(color: u8) -> Piece {
+        new(KING, color)
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Move {
     from: usize,
     to: usize,
-    promote_to: Option<PieceKind>,
+    promote_to: Option<PromotionKind>,
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct Board {
-    pub pieces: [Option<Piece>; 64],
-    pub active_color: PieceColor,
+    pub squares: [Pieces::Piece; 64],
+    pub white_is_active: bool,
 }
 
-use PieceColor::*;
-use PieceKind::*;
-
-impl Piece {
-    fn new(kind: PieceKind, color: PieceColor) -> Piece {
-        Piece { kind, color }
-    }
-
-    pub fn pawn(color: PieceColor) -> Piece {
-        Piece::new(Pawn, color)
-    }
-    pub fn rook(color: PieceColor) -> Piece {
-        Piece::new(Rook, color)
-    }
-    pub fn knight(color: PieceColor) -> Piece {
-        Piece::new(Knight, color)
-    }
-    pub fn bishop(color: PieceColor) -> Piece {
-        Piece::new(Bishop, color)
-    }
-    pub fn quieen(color: PieceColor) -> Piece {
-        Piece::new(Quieen, color)
-    }
-    pub fn king(color: PieceColor) -> Piece {
-        Piece::new(King, color)
-    }
-}
+use PromotionKind::*;
 
 impl Move {
     pub fn null() -> Move {
@@ -84,6 +81,8 @@ impl Move {
     }
 }
 
+use Pieces::*;
+
 impl Board {
     pub fn new() -> Board {
         Board::from_fen(String::from("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")).expect("Failed to construct start board")
@@ -91,56 +90,56 @@ impl Board {
 
     pub fn from_fen(fen: String) -> std::io::Result<Board> {
         let mut fen = fen.chars();
-        let mut pieces: [Option<Piece>; 64] = [None; 64];
+        let mut squeres: [Piece; 64] = [0; 64];
         let mut current = 0;
         for symbol in &mut fen {
             match symbol {
                 'r' => {
-                    pieces[current] = Some(Piece::rook(Black));
+                    squeres[current] = rook(BLACK);
                     current += 1;
                 }
                 'n' => {
-                    pieces[current] = Some(Piece::knight(Black));
+                    squeres[current] = knight(BLACK);
                     current += 1;
                 }
                 'b' => {
-                    pieces[current] = Some(Piece::bishop(Black));
+                    squeres[current] = bishop(BLACK);
                     current += 1;
                 }
                 'q' => {
-                    pieces[current] = Some(Piece::quieen(Black));
+                    squeres[current] = quieen(BLACK);
                     current += 1;
                 }
                 'k' => {
-                    pieces[current] = Some(Piece::king(Black));
+                    squeres[current] = king(BLACK);
                     current += 1;
                 }
                 'p' => {
-                    pieces[current] = Some(Piece::pawn(Black));
+                    squeres[current] = pawn(BLACK);
                     current += 1;
                 }
                 'R' => {
-                    pieces[current] = Some(Piece::rook(White));
+                    squeres[current] = rook(WHITE);
                     current += 1;
                 }
                 'N' => {
-                    pieces[current] = Some(Piece::knight(White));
+                    squeres[current] = knight(WHITE);
                     current += 1;
                 }
                 'B' => {
-                    pieces[current] = Some(Piece::bishop(White));
+                    squeres[current] = bishop(WHITE);
                     current += 1;
                 }
                 'Q' => {
-                    pieces[current] = Some(Piece::quieen(White));
+                    squeres[current] = quieen(WHITE);
                     current += 1;
                 }
                 'K' => {
-                    pieces[current] = Some(Piece::king(White));
+                    squeres[current] = king(WHITE);
                     current += 1;
                 }
                 'P' => {
-                    pieces[current] = Some(Piece::pawn(White));
+                    squeres[current] = pawn(WHITE);
                     current += 1;
                 }
                 '/' => (),
@@ -159,23 +158,23 @@ impl Board {
         if space != Some(' ') {
             return Result::Err(errors::invalid_input(format!("Expected space after pieces string")));
         }
-        let active_color = match (&mut fen).next() {
-            Some('w') => White,
-            Some('b') => Black,
+        let white_is_active = match (&mut fen).next() {
+            Some('w') => true,
+            Some('b') => false,
             _ => return Result::Err(errors::invalid_input(format!("Expected active color after fen string"))),
         };
 
-        Ok(Board { pieces, active_color })
+        Ok(Board {
+            squares: squeres,
+            white_is_active,
+        })
     }
 
     pub fn make_uci_move(&mut self, mv: &crate::uci::Move) -> Board {
         let mut result = self.clone();
-        result.pieces[mv.to] = result.pieces[mv.from];
-        result.pieces[mv.from] = None;
-        match result.active_color {
-            White => result.active_color = Black,
-            Black => result.active_color = White,
-        };
+        result.squares[mv.to] = result.squares[mv.from];
+        result.squares[mv.from] = 0;
+        result.white_is_active = !result.white_is_active;
         result
     }
 }

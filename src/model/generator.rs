@@ -4,7 +4,7 @@ impl Board {
     pub fn gen_moves(&self) -> Box<[Move]> {
         let mut buffer = [Move::null(); 218];
         let mut actual_count = 0;
-        for (pos, &square) in self.pieces.iter().enumerate() {
+        for (pos, &square) in self.squares.iter().enumerate() {
             match square {
                 Some(piece) if piece.color == self.active_color => match piece.kind {
                     Pawn => {
@@ -42,10 +42,6 @@ impl Board {
         candidates
             .into_iter()
             .filter(|&x| x < 64 && x >= 0)
-            .filter(|&x| match self.pieces[x] {
-                Some(target_piece) => target_piece.color != self.active_color,
-                None => true,
-            })
             .map(|x| Move {
                 from: king_index,
                 to: x,
