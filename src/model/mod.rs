@@ -1,8 +1,9 @@
 pub mod generator;
 pub mod pieces;
+mod static_data;
 mod tests;
 
-use std::fmt::{Debug, Write};
+use std::fmt::Debug;
 
 use crate::util::*;
 use pieces::*;
@@ -27,8 +28,6 @@ pub struct Board {
     pub squares: [u8; 64],
     pub white_is_active: bool,
 }
-
-use PromotionKind::*;
 
 impl Move {
     pub fn null() -> Move {
@@ -59,56 +58,56 @@ impl Board {
 
     pub fn from_fen(fen: String) -> std::io::Result<Board> {
         let mut fen = fen.chars();
-        let mut squeres: [u8; 64] = [0; 64];
+        let mut squares: [u8; 64] = [0; 64];
         let mut current = 0;
         for symbol in &mut fen {
             match symbol {
                 'r' => {
-                    squeres[current] = rook(BLACK);
+                    squares[current] = rook(BLACK);
                     current += 1;
                 }
                 'n' => {
-                    squeres[current] = knight(BLACK);
+                    squares[current] = knight(BLACK);
                     current += 1;
                 }
                 'b' => {
-                    squeres[current] = bishop(BLACK);
+                    squares[current] = bishop(BLACK);
                     current += 1;
                 }
                 'q' => {
-                    squeres[current] = quieen(BLACK);
+                    squares[current] = quieen(BLACK);
                     current += 1;
                 }
                 'k' => {
-                    squeres[current] = king(BLACK);
+                    squares[current] = king(BLACK);
                     current += 1;
                 }
                 'p' => {
-                    squeres[current] = pawn(BLACK);
+                    squares[current] = pawn(BLACK);
                     current += 1;
                 }
                 'R' => {
-                    squeres[current] = rook(WHITE);
+                    squares[current] = rook(WHITE);
                     current += 1;
                 }
                 'N' => {
-                    squeres[current] = knight(WHITE);
+                    squares[current] = knight(WHITE);
                     current += 1;
                 }
                 'B' => {
-                    squeres[current] = bishop(WHITE);
+                    squares[current] = bishop(WHITE);
                     current += 1;
                 }
                 'Q' => {
-                    squeres[current] = quieen(WHITE);
+                    squares[current] = quieen(WHITE);
                     current += 1;
                 }
                 'K' => {
-                    squeres[current] = king(WHITE);
+                    squares[current] = king(WHITE);
                     current += 1;
                 }
                 'P' => {
-                    squeres[current] = pawn(WHITE);
+                    squares[current] = pawn(WHITE);
                     current += 1;
                 }
                 '/' => (),
@@ -133,13 +132,18 @@ impl Board {
             _ => return Result::Err(errors::invalid_input(format!("Expected active color after fen string"))),
         };
 
-        Ok(Board {
-            squares: squeres,
-            white_is_active,
-        })
+        Ok(Board { squares, white_is_active })
     }
 
-    pub fn make_uci_move(&mut self, mv: &crate::uci::Move) -> Board {
+    pub fn make_move(&self, mv: &Move) -> Board {
+        let mut result = self.clone();
+        result.squares[mv.to] = result.squares[mv.from];
+        result.squares[mv.from] = 0;
+        result.white_is_active = !result.white_is_active;
+        result
+    }
+
+    pub fn make_uci_move(&self, mv: &crate::uci::Move) -> Board {
         let mut result = self.clone();
         result.squares[mv.to] = result.squares[mv.from];
         result.squares[mv.from] = 0;

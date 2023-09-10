@@ -1,5 +1,4 @@
 use crate::{model::*, util};
-use pieces::*;
 
 #[test]
 fn construct_start_board() {

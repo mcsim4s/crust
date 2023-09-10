@@ -1,3 +1,5 @@
+use rand::RngCore;
+
 use crate::model::*;
 use crate::uci::Command;
 use std::io::*;
@@ -23,7 +25,8 @@ impl Engine {
             }
             Command::Go(_) => {
                 let moves = self.board.gen_moves();
-                let best_move = moves[0].to_notation();
+                let rnd: usize = (rand::thread_rng().next_u64() % moves.len() as u64) as usize;
+                let best_move = moves[rnd].to_notation();
                 println!("bestmove {best_move}");
             }
         }
