@@ -1,4 +1,4 @@
-use crate::{model::*, util};
+use crate::{engine::Engine, model::*, uci, util};
 
 #[test]
 fn construct_start_board() {
@@ -118,8 +118,22 @@ fn index_to_notation() {
 
 #[test]
 fn perf_test() {
-    let board = Board::new();
-    let moves = board.gen_moves();
-    dbg!(&moves);
-    assert_eq!(20, moves.len());
+    let mut engine = Engine::new();
+    assert_eq!(20, engine.performance_test(1));
+    assert_eq!(400, engine.performance_test(2));
+    assert_eq!(8902, engine.performance_test(3));
+    //    assert_eq!(197281, engine.performance_test(4));
+    //    assert_eq!(4865609, engine.performance_test(5));
+
+    engine
+        .execute_uci(uci::Command::SetPosition {
+            position: uci::Position::Fen(String::from("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -")),
+            moves: Vec::new(),
+        })
+        .unwrap();
+
+    assert_eq!(48, engine.performance_test(1));
+    assert_eq!(2039, engine.performance_test(2));
+    assert_eq!(97862, engine.performance_test(3));
+    assert_eq!(4085603, engine.performance_test(4));
 }

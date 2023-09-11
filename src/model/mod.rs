@@ -8,19 +8,11 @@ use std::fmt::Debug;
 use crate::util::*;
 use pieces::*;
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum PromotionKind {
-    Rook,
-    Knight,
-    Bishop,
-    Quieen,
-}
-
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Move {
-    from: usize,
-    to: usize,
-    promote_to: Option<PromotionKind>,
+    pub from: usize,
+    pub to: usize,
+    pub promote_to: Option<u8>,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -31,17 +23,28 @@ pub struct Board {
 
 impl Move {
     pub fn null() -> Move {
-        Move {
-            from: 0,
-            to: 0,
-            promote_to: None,
-        }
+        Move::regular(0, 0)
     }
 
     pub fn to_notation(&self) -> String {
         let from = index_to_square_notation(self.from).expect("Unable to convert 'from' to notation");
         let to = index_to_square_notation(self.to).expect("Unable to convert 'to' to notation");
-        format!("{from}{to}")
+        let promotion = match self.promote_to {
+            Some(QUEEN) => "q",
+            Some(ROOK) => "r",
+            Some(KNIGHT) => "k",
+            Some(BISHOP) => "b",
+            _ => "",
+        };
+        format!("{from}{to}{promotion}")
+    }
+
+    pub fn regular(from: usize, to: usize) -> Move {
+        Move {
+            from,
+            to,
+            promote_to: None,
+        }
     }
 }
 
@@ -137,15 +140,10 @@ impl Board {
 
     pub fn make_move(&self, mv: &Move) -> Board {
         let mut result = self.clone();
-        result.squares[mv.to] = result.squares[mv.from];
-        result.squares[mv.from] = 0;
-        result.white_is_active = !result.white_is_active;
-        result
-    }
-
-    pub fn make_uci_move(&self, mv: &crate::uci::Move) -> Board {
-        let mut result = self.clone();
-        result.squares[mv.to] = result.squares[mv.from];
+        result.squares[mv.to] = match mv.promote_to {
+            Some(piece) => pieces::new(piece, self.active_color()),
+            None => result.squares[mv.from],
+        };
         result.squares[mv.from] = 0;
         result.white_is_active = !result.white_is_active;
         result

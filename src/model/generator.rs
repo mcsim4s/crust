@@ -63,11 +63,7 @@ impl Board {
         KNIGHT_MOVES[pos]
             .into_iter()
             .filter(|&&x| !self.squares[x as usize].is_color(active_color))
-            .map(|&x| Move {
-                from: pos,
-                to: x,
-                promote_to: None,
-            })
+            .map(|&x| Move::regular(pos, x))
             .collect()
     }
 
@@ -81,11 +77,7 @@ impl Board {
                 if self.squares[to].is_color(active_color) {
                     break;
                 }
-                result.push(Move {
-                    from: pos,
-                    to,
-                    promote_to: None,
-                });
+                result.push(Move::regular(pos, to));
                 if self.squares[to].is_color(inactive_color) {
                     break;
                 }
@@ -101,11 +93,7 @@ impl Board {
             if EDGE_DISTANCE[pos][direction] > 0 {
                 let to = (pos as i8 + DIRECTIONS[direction]) as usize;
                 if !self.squares[to].is_color(active_color) {
-                    result.push(Move {
-                        from: pos,
-                        to,
-                        promote_to: None,
-                    });
+                    result.push(Move::regular(pos, to));
                 }
             }
         }
@@ -117,37 +105,59 @@ impl Board {
         let active_color = self.active_color();
         let diff: i8 = if active_color == pieces::WHITE { -8 } else { 8 };
         let regular_move = (pos as i8 + diff) as usize;
+        let rank = pos / 8;
+
         if self.squares[regular_move] == pieces::NONE {
-            result.push(Move {
-                from: pos,
-                to: regular_move,
-                promote_to: None,
-            });
+            if rank == 0 || rank == 7 {
+                result.append(&mut self.gen_promotions(pos, regular_move));
+            } else {
+                result.push(Move::regular(pos, regular_move));
+            }
         }
         if pos % 8 != 0 && self.squares[regular_move - 1].is_color(self.inactive_color()) {
-            result.push(Move {
-                from: pos,
-                to: regular_move - 1,
-                promote_to: None,
-            });
+            if rank == 0 || rank == 7 {
+                result.append(&mut self.gen_promotions(pos, regular_move - 1));
+            } else {
+                result.push(Move::regular(pos, regular_move - 1));
+            }
         }
         if pos % 8 != 7 && self.squares[regular_move + 1].is_color(self.inactive_color()) {
-            result.push(Move {
-                from: pos,
-                to: regular_move + 1,
-                promote_to: None,
-            });
+            if rank == 0 || rank == 7 {
+                result.append(&mut self.gen_promotions(pos, regular_move + 1));
+            } else {
+                result.push(Move::regular(pos, regular_move + 1));
+            }
         }
-        let rank = pos / 8;
         let double_move_avaliable = (rank == 1 && active_color == BLACK) || (rank == 6 && active_color == WHITE);
         let double_move = (regular_move as i8 + diff) as usize;
         if double_move_avaliable && result.len() > 0 && self.squares[double_move] == NONE {
-            result.push(Move {
-                from: pos,
-                to: double_move,
-                promote_to: None,
-            });
+            result.push(Move::regular(pos, double_move));
         }
         result
+    }
+
+    fn gen_promotions(&self, from: usize, to: usize) -> Vec<Move> {
+        vec![
+            Move {
+                from,
+                to,
+                promote_to: Some(QUEEN),
+            },
+            Move {
+                from,
+                to,
+                promote_to: Some(KNIGHT),
+            },
+            Move {
+                from,
+                to,
+                promote_to: Some(BISHOP),
+            },
+            Move {
+                from,
+                to,
+                promote_to: Some(ROOK),
+            },
+        ]
     }
 }

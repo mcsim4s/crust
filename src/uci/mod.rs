@@ -1,6 +1,8 @@
 use crate::model;
 use crate::util::*;
+use model::pieces;
 use std::io::Result;
+use std::str::FromStr;
 
 pub enum Position {
     Start,
@@ -16,7 +18,7 @@ pub struct GoCommand {
 pub struct Move {
     pub from: usize,
     pub to: usize,
-    pub promote_to: Option<model::PromotionKind>,
+    pub promote_to: Option<u8>,
 }
 
 pub enum Command {
@@ -31,11 +33,23 @@ impl Move {
     pub fn from_notation(mv: &str) -> std::io::Result<Move> {
         let from = square_notation_to_index(&mv[0..2])?;
         let to = square_notation_to_index(&mv[2..4])?;
-        Ok(Move {
-            from,
-            to,
-            promote_to: None, //ToDo promotion
-        })
+        let promote_to = match mv.chars().nth(4) {
+            Some('q') | Some('Q') => Some(pieces::QUEEN),
+            Some('r') | Some('R') => Some(pieces::ROOK),
+            Some('k') | Some('K') => Some(pieces::KNIGHT),
+            Some('b') | Some('B') => Some(pieces::BISHOP),
+            Some(other) => return Result::Err(errors::invalid_input(format!("Unexpected promotion: '{}'", other))),
+            None => None,
+        };
+        Ok(Move { from, to, promote_to })
+    }
+
+    pub fn to_inner_model(&self) -> model::Move {
+        model::Move {
+            from: self.from,
+            to: self.to,
+            promote_to: self.promote_to,
+        }
     }
 }
 
@@ -58,7 +72,15 @@ fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Co
         .next()
         .ok_or(errors::invalid_input(format!("Unexpected empty input after 'position'")))?
     {
-        "fen" => todo!(),
+        "fen" => {
+            let pieces = split.next().expect("Expected fen pieces");
+            let active_color = split.next().expect("Expected fen active_color");
+            let castling = split.next().expect("Expected fen castling");
+            let en_passant = split.next().expect("Expected fen en_passant");
+            let half_moves = split.next().expect("Expected fen half_moves");
+            let moves = split.next().expect("Expected fen moves");
+            Position::Fen(format!("{pieces} {active_color} {castling} {en_passant} {half_moves} {moves}"))
+        }
         "startpos" => Position::Start,
         other => return Result::Err(errors::invalid_input(format!("Unexpected input after 'position': '{other}'"))),
     };
