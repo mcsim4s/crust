@@ -120,5 +120,6 @@ fn index_to_notation() {
 fn perf_test() {
     let board = Board::new();
     let moves = board.gen_moves();
+    dbg!(&moves);
     assert_eq!(20, moves.len());
 }

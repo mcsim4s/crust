@@ -1,6 +1,8 @@
+use lazy_static::*;
+
 // up right down left up-right down-right down-left up-left
-pub const DIRECTIONS: [i8; 8] = [-8, 1, 8, -1, -7, 9, 7, -9];
-pub const EDGE_DISTANCE: [[i8; 8]; 64] = [
+pub static DIRECTIONS: [i8; 8] = [-8, 1, 8, -1, -7, 9, 7, -9];
+pub static EDGE_DISTANCE: [[i8; 8]; 64] = [
     [0, 7, 7, 0, 0, 7, 0, 0],
     [0, 6, 7, 1, 0, 6, 1, 0],
     [0, 5, 7, 2, 0, 5, 2, 0],
@@ -67,6 +69,75 @@ pub const EDGE_DISTANCE: [[i8; 8]; 64] = [
     [7, 0, 0, 7, 0, 0, 0, 7],
 ];
 
+lazy_static! {
+    pub static ref KNIGHT_MOVES: [Box<[usize]>; 64] = [
+        Box::new([10, 17]),
+        Box::new([16, 11, 18]),
+        Box::new([17, 8, 12, 19]),
+        Box::new([18, 9, 13, 20]),
+        Box::new([19, 10, 14, 21]),
+        Box::new([20, 11, 15, 22]),
+        Box::new([21, 12, 23]),
+        Box::new([22, 13]),
+        Box::new([2, 18, 25]),
+        Box::new([24, 3, 19, 26]),
+        Box::new([25, 4, 16, 0, 20, 27]),
+        Box::new([26, 5, 17, 1, 21, 28]),
+        Box::new([27, 6, 18, 2, 22, 29]),
+        Box::new([28, 7, 19, 3, 23, 30]),
+        Box::new([29, 20, 4, 31]),
+        Box::new([30, 21, 5]),
+        Box::new([1, 10, 26, 33]),
+        Box::new([2, 32, 11, 27, 0, 34]),
+        Box::new([3, 33, 12, 24, 8, 28, 1, 35]),
+        Box::new([4, 34, 13, 25, 9, 29, 2, 36]),
+        Box::new([5, 35, 14, 26, 10, 30, 3, 37]),
+        Box::new([6, 36, 15, 27, 11, 31, 4, 38]),
+        Box::new([7, 37, 28, 12, 5, 39]),
+        Box::new([38, 29, 13, 6]),
+        Box::new([9, 18, 34, 41]),
+        Box::new([10, 40, 19, 35, 8, 42]),
+        Box::new([11, 41, 20, 32, 16, 36, 9, 43]),
+        Box::new([12, 42, 21, 33, 17, 37, 10, 44]),
+        Box::new([13, 43, 22, 34, 18, 38, 11, 45]),
+        Box::new([14, 44, 23, 35, 19, 39, 12, 46]),
+        Box::new([15, 45, 36, 20, 13, 47]),
+        Box::new([46, 37, 21, 14]),
+        Box::new([17, 26, 42, 49]),
+        Box::new([18, 48, 27, 43, 16, 50]),
+        Box::new([19, 49, 28, 40, 24, 44, 17, 51]),
+        Box::new([20, 50, 29, 41, 25, 45, 18, 52]),
+        Box::new([21, 51, 30, 42, 26, 46, 19, 53]),
+        Box::new([22, 52, 31, 43, 27, 47, 20, 54]),
+        Box::new([23, 53, 44, 28, 21, 55]),
+        Box::new([54, 45, 29, 22]),
+        Box::new([25, 34, 50, 57]),
+        Box::new([26, 56, 35, 51, 24, 58]),
+        Box::new([27, 57, 36, 48, 32, 52, 25, 59]),
+        Box::new([28, 58, 37, 49, 33, 53, 26, 60]),
+        Box::new([29, 59, 38, 50, 34, 54, 27, 61]),
+        Box::new([30, 60, 39, 51, 35, 55, 28, 62]),
+        Box::new([31, 61, 52, 36, 29, 63]),
+        Box::new([62, 53, 37, 30]),
+        Box::new([33, 42, 58]),
+        Box::new([34, 43, 59, 32]),
+        Box::new([35, 44, 56, 40, 60, 33]),
+        Box::new([36, 45, 57, 41, 61, 34]),
+        Box::new([37, 46, 58, 42, 62, 35]),
+        Box::new([38, 47, 59, 43, 63, 36]),
+        Box::new([39, 60, 44, 37]),
+        Box::new([61, 45, 38]),
+        Box::new([41, 50]),
+        Box::new([42, 51, 40]),
+        Box::new([43, 52, 48, 41]),
+        Box::new([44, 53, 49, 42]),
+        Box::new([45, 54, 50, 43]),
+        Box::new([46, 55, 51, 44]),
+        Box::new([47, 52, 45]),
+        Box::new([53, 46]),
+    ];
+}
+
 #[test]
 fn gen_edge_distances() {
     let mut result = [[0u8; 8]; 64];
@@ -83,5 +154,43 @@ fn gen_edge_distances() {
     assert_eq!(3, result[4][1]);
     assert_eq!(7, result[4][2]);
     assert_eq!(0, result[60][2]);
-    dbg!(result);
+    // uncomment to copy data in const var
+    //    dbg!(result);
+}
+
+#[test]
+fn gen_knight_moves() {
+    let mut result: [Vec<usize>; 64] = array_init::array_init(|_| Vec::new());
+    for i in 0..64 {
+        let pos: usize = i as usize;
+        let x = pos % 8;
+        let y = pos / 8;
+        result[pos] = [
+            pos.checked_sub(15),
+            pos.checked_add(15),
+            pos.checked_sub(6),
+            pos.checked_add(6),
+            pos.checked_sub(10),
+            pos.checked_add(10),
+            pos.checked_sub(17),
+            pos.checked_add(17),
+        ]
+        .into_iter()
+        .flatten()
+        .filter(|&to| to < 64)
+        .filter(|&to| {
+            let new_x = to % 8;
+            let new_y = to / 8;
+            new_x.abs_diff(x).max(new_y.abs_diff(y)) == 2
+        })
+        .collect();
+        // uncomment to copy data in const var
+        print!("Box::new([");
+        for target in &result[pos] {
+            print!("{target}, ");
+        }
+        println!("]),");
+    }
+
+    assert_eq!(2, result[0].len());
 }

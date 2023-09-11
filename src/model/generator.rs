@@ -40,10 +40,26 @@ impl Board {
             self.king_moves(pos)
         } else if piece.is_bishop() {
             self.sliding_moves(pos, 4..8)
+        } else if piece.is_rook() {
+            self.sliding_moves(pos, 0..4)
+        } else if piece.is_queen() {
+            self.sliding_moves(pos, 0..8)
+        } else if piece.is_knight() {
+            self.knight_moves(pos)
         } else {
-            //            panic!("Unknonw piece type to gen moves")
-            Vec::new()
+            panic!("Unknonw piece type to gen moves")
         }
+    }
+
+    fn knight_moves(&self, pos: usize) -> Vec<Move> {
+        KNIGHT_MOVES[pos]
+            .into_iter()
+            .map(|&x| Move {
+                from: pos,
+                to: x,
+                promote_to: None,
+            })
+            .collect()
     }
 
     fn sliding_moves(&self, pos: usize, directions: std::ops::Range<usize>) -> Vec<Move> {
