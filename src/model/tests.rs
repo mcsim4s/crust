@@ -30,6 +30,10 @@ fn construct_start_board() {
     assert_eq!(pieces::new(ROOK, WHITE), start_board.squares[63]);
 
     assert!(start_board.white_is_active);
+    assert!(start_board.castle_white_king);
+    assert!(start_board.castle_white_queen);
+    assert!(start_board.castle_black_king);
+    assert!(start_board.castle_black_queen);
 }
 
 #[test]
@@ -122,13 +126,13 @@ fn perf_test() {
     assert_eq!(20, engine.performance_test(1));
     assert_eq!(400, engine.performance_test(2));
     assert_eq!(8902, engine.performance_test(3));
-    //    assert_eq!(197281, engine.performance_test(4));
-    //    assert_eq!(4865609, engine.performance_test(5));
+    assert_eq!(197281, engine.performance_test(4));
+    assert_eq!(4865609, engine.performance_test(5));
 
     engine
         .execute_uci(uci::Command::SetPosition {
             position: uci::Position::Fen(String::from("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq -")),
-            moves: Vec::new(),
+            moves: vec![],
         })
         .unwrap();
 
@@ -136,4 +140,15 @@ fn perf_test() {
     assert_eq!(2039, engine.performance_test(2));
     assert_eq!(97862, engine.performance_test(3));
     assert_eq!(4085603, engine.performance_test(4));
+}
+
+#[test]
+fn disable_castle() {
+    let mut engine = Engine::new();
+    let command = uci::Command::parse("position startpos moves g1h3 g7g5 e2e3 f7f5 f1d3 g5g4 e1g1 d7d6 d3a6 c7c6 g2g3 e8f7 b1c3 b8a6 g1g2 g8f6 d1g4 c8e6 g4e2 e6b3 a2a3 f6e8 h3g5 f7f6 g5f7 d8b6 f7g5").unwrap();
+    engine.execute_uci(command).unwrap();
+    assert!(!engine.board.castle_white_king);
+    assert!(!engine.board.castle_white_queen);
+    assert!(!engine.board.castle_black_king);
+    assert!(!engine.board.castle_black_queen);
 }

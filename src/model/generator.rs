@@ -23,7 +23,18 @@ impl Board {
             .filter(|mv| {
                 let next_pos = self.make_move(mv);
                 let pseudo = next_pos.gen_pseudo_legal_moves();
-                !pseudo.into_iter().any(|next_move| next_pos.squares[next_move.to].is_king())
+
+                if mv.castle {
+                    let castle_squares = match mv.to {
+                        2 => CASTLE_SQUARES[0],
+                        6 => CASTLE_SQUARES[1],
+                        58 => CASTLE_SQUARES[2],
+                        _ => CASTLE_SQUARES[3],
+                    };
+                    !pseudo.into_iter().any(|next_move| castle_squares.contains(&next_move.to))
+                } else {
+                    !pseudo.into_iter().any(|next_move| next_pos.squares[next_move.to].is_king())
+                }
             })
             .collect()
     }
@@ -97,6 +108,19 @@ impl Board {
                 }
             }
         }
+        if active_color == WHITE && self.castle_white_king && self.squares[61..63] == [NONE, NONE] {
+            result.push(Move::castle(60, 62));
+        }
+        if active_color == WHITE && self.castle_white_queen && self.squares[57..60] == [NONE, NONE, NONE] {
+            result.push(Move::castle(60, 58));
+        }
+        if active_color == BLACK && self.castle_black_king && self.squares[5..7] == [NONE, NONE] {
+            result.push(Move::castle(4, 6));
+        }
+        if active_color == BLACK && self.castle_black_queen && self.squares[1..4] == [NONE, NONE, NONE] {
+            result.push(Move::castle(4, 2));
+        }
+
         result
     }
 
@@ -114,6 +138,11 @@ impl Board {
                 result.push(Move::regular(pos, regular_move));
             }
         }
+        let double_move_avaliable = (rank == 1 && active_color == BLACK) || (rank == 6 && active_color == WHITE);
+        let double_move = (regular_move as i8 + diff) as usize;
+        if double_move_avaliable && result.len() > 0 && self.squares[double_move] == NONE {
+            result.push(Move::regular(pos, double_move));
+        }
         if pos % 8 != 0 && self.squares[regular_move - 1].is_color(self.inactive_color()) {
             if rank == 0 || rank == 7 {
                 result.append(&mut self.gen_promotions(pos, regular_move - 1));
@@ -128,36 +157,15 @@ impl Board {
                 result.push(Move::regular(pos, regular_move + 1));
             }
         }
-        let double_move_avaliable = (rank == 1 && active_color == BLACK) || (rank == 6 && active_color == WHITE);
-        let double_move = (regular_move as i8 + diff) as usize;
-        if double_move_avaliable && result.len() > 0 && self.squares[double_move] == NONE {
-            result.push(Move::regular(pos, double_move));
-        }
         result
     }
 
     fn gen_promotions(&self, from: usize, to: usize) -> Vec<Move> {
         vec![
-            Move {
-                from,
-                to,
-                promote_to: Some(QUEEN),
-            },
-            Move {
-                from,
-                to,
-                promote_to: Some(KNIGHT),
-            },
-            Move {
-                from,
-                to,
-                promote_to: Some(BISHOP),
-            },
-            Move {
-                from,
-                to,
-                promote_to: Some(ROOK),
-            },
+            Move::promotion(from, to, QUEEN),
+            Move::promotion(from, to, ROOK),
+            Move::promotion(from, to, KNIGHT),
+            Move::promotion(from, to, BISHOP),
         ]
     }
 }

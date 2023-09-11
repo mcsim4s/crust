@@ -43,14 +43,6 @@ impl Move {
         };
         Ok(Move { from, to, promote_to })
     }
-
-    pub fn to_inner_model(&self) -> model::Move {
-        model::Move {
-            from: self.from,
-            to: self.to,
-            promote_to: self.promote_to,
-        }
-    }
 }
 
 impl Command {
