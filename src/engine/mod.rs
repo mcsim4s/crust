@@ -64,6 +64,7 @@ impl Engine {
         Engine { board: Board::new() }
     }
 
+    #[allow(dead_code)]
     pub fn performance_test(&self, depth: u8) -> u64 {
         self.performance_test_inner(depth, false)
     }
