@@ -1,9 +1,12 @@
-use rand::RngCore;
+mod generation;
+mod static_data;
+mod tests;
 
 use crate::model::pieces::Piece;
 use crate::model::*;
 use crate::uci;
 use crate::uci::Command;
+use rand::RngCore;
 use std::io::*;
 use std::time::SystemTime;
 

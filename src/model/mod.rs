@@ -1,12 +1,11 @@
-pub mod generator;
 pub mod pieces;
-mod static_data;
 mod tests;
+pub mod util;
 
 use std::fmt::Debug;
 
-use crate::util::*;
 use pieces::*;
+use util::*;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Move {
@@ -28,10 +27,6 @@ pub struct Board {
 }
 
 impl Move {
-    pub fn null() -> Move {
-        Move::regular(0, 0)
-    }
-
     pub fn to_notation(&self) -> String {
         let from = index_to_square_notation(self.from).expect("Unable to convert 'from' to notation");
         let to = index_to_square_notation(self.to).expect("Unable to convert 'to' to notation");
@@ -198,7 +193,6 @@ impl Board {
             en_passant,
         })
     }
-
     pub fn to_fen(&self) -> String {
         let mut result = String::with_capacity(64);
         let mut empty_count = 0;
@@ -253,6 +247,21 @@ impl Board {
         }
         result.push_str(" 0 0");
         result
+    }
+
+    pub fn active_color(&self) -> u8 {
+        if self.white_is_active {
+            WHITE
+        } else {
+            BLACK
+        }
+    }
+    pub fn inactive_color(&self) -> u8 {
+        if self.white_is_active {
+            BLACK
+        } else {
+            WHITE
+        }
     }
 
     pub fn make_move(&self, mv: &Move) -> Board {

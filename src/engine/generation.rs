@@ -1,22 +1,8 @@
+use super::static_data::*;
+use crate::model::pieces::*;
 use crate::model::*;
-use static_data::*;
 
 impl Board {
-    pub fn active_color(&self) -> u8 {
-        if self.white_is_active {
-            WHITE
-        } else {
-            BLACK
-        }
-    }
-    pub fn inactive_color(&self) -> u8 {
-        if self.white_is_active {
-            BLACK
-        } else {
-            WHITE
-        }
-    }
-
     pub fn gen_moves(&self) -> Vec<Move> {
         self.gen_pseudo_legal_moves()
             .into_iter()

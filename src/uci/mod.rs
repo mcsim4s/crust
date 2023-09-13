@@ -1,6 +1,6 @@
 use crate::model;
-use crate::util::*;
 use model::pieces;
+use model::util::*;
 use std::io::Result;
 
 pub enum Position {
