@@ -2,13 +2,13 @@ use crate::model;
 use crate::util::*;
 use model::pieces;
 use std::io::Result;
-use std::str::FromStr;
 
 pub enum Position {
     Start,
     Fen(String),
 }
 
+#[allow(dead_code)]
 pub struct GoCommand {
     white_time: u64,
     black_time: u64,
@@ -27,6 +27,8 @@ pub enum Command {
     NewGame,
     SetPosition { position: Position, moves: Vec<Move> },
     Go(GoCommand),
+    Perft(u8),
+    Display,
 }
 
 impl Move {
@@ -54,6 +56,7 @@ impl Command {
             "ucinewgame" => Result::Ok(Command::NewGame),
             "position" => parse_position_command(split),
             "go" => parse_go_command(split),
+            "d" => Result::Ok(Command::Display),
             other => Result::Err(errors::invalid_input(format!("Unexpected uci input: '{}'", other))),
         }
     }
@@ -94,22 +97,26 @@ fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Co
 }
 
 fn parse_go_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command> {
-    let mut result = GoCommand {
-        white_time: 0,
-        black_time: 0,
-    };
+    let mut result: Command = Command::Uci;
     while let Some(arg) = split.next() {
         match arg {
             "wtime" => {
-                result = GoCommand {
+                result = Command::Go(GoCommand {
                     white_time: parse_time(&mut split)?,
-                    ..result
-                }
+                    black_time: 0, //                    black_time: parse_time(&mut split)?,
+                });
+            }
+            "perft" => {
+                let depth_string: &str = split.next().ok_or(errors::invalid_input(format!("expected depth for perft")))?;
+                let depth: u8 = depth_string
+                    .parse()
+                    .or(Result::Err(errors::invalid_input(format!("Invalid depth format"))))?;
+                result = Command::Perft(depth);
             }
             _ => (),
         }
     }
-    Result::Ok(Command::Go(result))
+    Result::Ok(result)
 }
 
 fn parse_time(source: &mut std::str::SplitWhitespace<'_>) -> Result<u64> {

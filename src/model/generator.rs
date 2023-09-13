@@ -1,4 +1,4 @@
-use crate::{model::*, util};
+use crate::model::*;
 use static_data::*;
 
 impl Board {
@@ -21,17 +21,22 @@ impl Board {
         self.gen_pseudo_legal_moves()
             .into_iter()
             .filter(|mv| {
+                let inactive_color = self.inactive_color();
                 let next_pos = self.make_move(mv);
                 let pseudo = next_pos.gen_pseudo_legal_moves();
 
                 if mv.castle {
-                    let castle_squares = match mv.to {
-                        2 => CASTLE_SQUARES[0],
-                        6 => CASTLE_SQUARES[1],
-                        58 => CASTLE_SQUARES[2],
-                        _ => CASTLE_SQUARES[3],
+                    let castle_index = match mv.to {
+                        2 => 0,
+                        6 => 1,
+                        58 => 2,
+                        _ => 3,
                     };
-                    !pseudo.into_iter().any(|next_move| castle_squares.contains(&next_move.to))
+                    let castle_squares = CASTLE_SQUARES[castle_index];
+                    let castle_pawns = CASTLE_PAWNS[castle_index];
+                    let no_attack = !pseudo.iter().any(|next_move| castle_squares.contains(&next_move.to));
+                    let no_pawns = !castle_pawns.iter().any(|&square| self.squares[square].is(PAWN, inactive_color));
+                    no_attack && no_pawns
                 } else {
                     !pseudo.into_iter().any(|next_move| next_pos.squares[next_move.to].is_king())
                 }
@@ -129,7 +134,7 @@ impl Board {
         let active_color = self.active_color();
         let diff: i8 = if active_color == pieces::WHITE { -8 } else { 8 };
         let regular_move = (pos as i8 + diff) as usize;
-        let rank = pos / 8;
+        let rank = regular_move / 8;
 
         if self.squares[regular_move] == pieces::NONE {
             if rank == 0 || rank == 7 {
@@ -138,19 +143,19 @@ impl Board {
                 result.push(Move::regular(pos, regular_move));
             }
         }
-        let double_move_avaliable = (rank == 1 && active_color == BLACK) || (rank == 6 && active_color == WHITE);
+        let double_move_avaliable = (rank == 2 && active_color == BLACK) || (rank == 5 && active_color == WHITE);
         let double_move = (regular_move as i8 + diff) as usize;
         if double_move_avaliable && result.len() > 0 && self.squares[double_move] == NONE {
             result.push(Move::regular(pos, double_move));
         }
-        if pos % 8 != 0 && self.squares[regular_move - 1].is_color(self.inactive_color()) {
+        if pos % 8 != 0 && (self.squares[regular_move - 1].is_color(self.inactive_color()) || self.en_passant == Some(regular_move - 1)) {
             if rank == 0 || rank == 7 {
                 result.append(&mut self.gen_promotions(pos, regular_move - 1));
             } else {
                 result.push(Move::regular(pos, regular_move - 1));
             }
         }
-        if pos % 8 != 7 && self.squares[regular_move + 1].is_color(self.inactive_color()) {
+        if pos % 8 != 7 && (self.squares[regular_move + 1].is_color(self.inactive_color()) || self.en_passant == Some(regular_move + 1)) {
             if rank == 0 || rank == 7 {
                 result.append(&mut self.gen_promotions(pos, regular_move + 1));
             } else {

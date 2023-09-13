@@ -71,6 +71,12 @@ pub static EDGE_DISTANCE: [[i8; 8]; 64] = [
 
 // black queen/king, white queen/king
 pub static CASTLE_SQUARES: [[usize; 3]; 4] = [[2, 3, 4], [4, 5, 6], [58, 59, 60], [60, 61, 62]];
+pub static CASTLE_PAWNS: [[usize; 5]; 4] = [
+    [9, 10, 11, 12, 13],
+    [11, 12, 13, 14, 15],
+    [49, 50, 51, 52, 53],
+    [51, 52, 53, 54, 55],
+];
 
 lazy_static! {
     pub static ref KNIGHT_MOVES: [Box<[usize]>; 64] = [

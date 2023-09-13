@@ -37,12 +37,18 @@ impl Engine {
 
                 println!("bestmove {best_move}");
             }
+            Command::Perft(depth) => {
+                self.performance_test_print(depth);
+            }
+            Command::Display => {
+                println!("{}", self.board.to_fen());
+            }
         }
         Result::Ok(())
     }
 
     fn uci_move_to_inner_model(&self, mv: &uci::Move) -> Move {
-        let castle = self.board.squares[mv.from].is_king() && mv.from.abs_diff(mv.to) > 1;
+        let castle = self.board.squares[mv.from].is_king() && mv.from.abs_diff(mv.to) == 2;
         Move {
             from: mv.from,
             to: mv.to,
@@ -56,8 +62,15 @@ impl Engine {
     }
 
     pub fn performance_test(&self, depth: u8) -> u64 {
+        self.performance_test_inner(depth, false)
+    }
+
+    pub fn performance_test_print(&self, depth: u8) -> u64 {
+        self.performance_test_inner(depth, true)
+    }
+    fn performance_test_inner(&self, depth: u8, print: bool) -> u64 {
         let now = SystemTime::now();
-        let result = self.performance_test_inner(&self.board, depth, false);
+        let result = self.performance_test_recursive(&self.board, depth, print);
         let elapsed = now.elapsed().unwrap();
         println!(
             "Perf. depth: {depth}\telapsed: {}ms\tnodes: {result}\tnps: {:.0}",
@@ -67,7 +80,7 @@ impl Engine {
         result
     }
 
-    fn performance_test_inner(&self, board: &Board, depth: u8, print: bool) -> u64 {
+    fn performance_test_recursive(&self, board: &Board, depth: u8, print: bool) -> u64 {
         match depth {
             0 => 0,
             1 => {
@@ -83,7 +96,7 @@ impl Engine {
                 let mut result = 0;
                 let moves = board.gen_moves();
                 for mv in &moves {
-                    let acc = self.performance_test_inner(&board.make_move(mv), other - 1, false);
+                    let acc = self.performance_test_recursive(&board.make_move(mv), other - 1, false);
                     if print {
                         println!("{}: {acc}", mv.to_notation());
                     }

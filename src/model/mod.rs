@@ -24,6 +24,7 @@ pub struct Board {
     pub castle_white_queen: bool,
     pub castle_black_king: bool,
     pub castle_black_queen: bool,
+    pub en_passant: Option<usize>,
 }
 
 impl Move {
@@ -173,10 +174,19 @@ impl Board {
                 Some('k') => castle_black_king = true,
                 Some('Q') => castle_white_queen = true,
                 Some('q') => castle_black_queen = true,
+                Some('-') => (),
                 Some(' ') => break,
                 _ => return Result::Err(errors::invalid_input(format!("Expected castle state in fen string"))),
             }
         }
+        let en_passant = match (&mut fen).next() {
+            Some('-') => None,
+            Some(file) => match (&mut fen).next() {
+                Some(rank) => Some(square_notation_to_index(format!("{file}{rank}").as_str())?),
+                None => return Result::Err(errors::invalid_input(format!("Expected en_passant rank in fen string"))),
+            },
+            None => return Result::Err(errors::invalid_input(format!("Expected en_passant  in fen string"))),
+        };
 
         Ok(Board {
             squares,
@@ -185,32 +195,105 @@ impl Board {
             castle_white_queen,
             castle_black_king,
             castle_black_queen,
+            en_passant,
         })
+    }
+
+    pub fn to_fen(&self) -> String {
+        let mut result = String::with_capacity(64);
+        let mut empty_count = 0;
+        for rank in 0..8 {
+            for file in 0..8 {
+                let piece = self.squares[rank * 8 + file];
+                if piece == NONE {
+                    empty_count += 1;
+                } else {
+                    if empty_count > 0 {
+                        result.push_str(empty_count.to_string().as_str());
+                        empty_count = 0;
+                    }
+                    result.push(piece.notation());
+                }
+            }
+            if empty_count > 0 {
+                result.push_str(empty_count.to_string().as_str());
+                empty_count = 0;
+            }
+            if rank != 7 {
+                result.push('/');
+            }
+        }
+        result.push(' ');
+        if self.white_is_active {
+            result.push('w');
+        } else {
+            result.push('b');
+        }
+        result.push(' ');
+        if !self.castle_white_king && !self.castle_white_queen && !self.castle_black_king && !self.castle_black_queen {
+            result.push('-');
+        } else {
+            if self.castle_white_king {
+                result.push('K');
+            }
+            if self.castle_white_queen {
+                result.push('Q');
+            }
+            if self.castle_black_king {
+                result.push('k');
+            }
+            if self.castle_black_queen {
+                result.push('q');
+            }
+        }
+        result.push(' ');
+        match self.en_passant {
+            Some(square) => result.push_str(index_to_square_notation(square).unwrap().as_str()),
+            None => result.push('-'),
+        }
+        result.push_str(" 0 0");
+        result
     }
 
     pub fn make_move(&self, mv: &Move) -> Board {
         let mut result = self.clone();
+        let moved_piece = self.squares[mv.from];
 
         // Disable castling
-        if mv.from == 60 {
-            result.castle_white_king = false;
-            result.castle_white_queen = false;
+        {
+            if mv.from == 60 {
+                result.castle_white_king = false;
+                result.castle_white_queen = false;
+            }
+            if mv.from == 63 || mv.to == 63 {
+                result.castle_white_king = false;
+            }
+            if mv.from == 56 || mv.to == 56 {
+                result.castle_white_queen = false;
+            }
+            if mv.from == 4 {
+                result.castle_black_king = false;
+                result.castle_black_queen = false;
+            }
+            if mv.from == 7 || mv.to == 7 {
+                result.castle_black_king = false;
+            }
+            if mv.from == 0 || mv.to == 0 {
+                result.castle_black_queen = false;
+            }
         }
-        if mv.from == 63 || mv.to == 63 {
-            result.castle_white_king = false;
+
+        if moved_piece.is_pawn() && (mv.from / 8).abs_diff(mv.to / 8) > 1 {
+            result.en_passant = Some((mv.from + mv.to) / 2);
+        } else {
+            result.en_passant = None;
         }
-        if mv.from == 56 || mv.to == 56 {
-            result.castle_white_queen = false;
-        }
-        if mv.from == 4 {
-            result.castle_black_king = false;
-            result.castle_black_queen = false;
-        }
-        if mv.from == 7 || mv.to == 7 {
-            result.castle_black_king = false;
-        }
-        if mv.from == 0 || mv.to == 0 {
-            result.castle_black_queen = false;
+        if moved_piece.is_pawn() && self.en_passant == Some(mv.to) {
+            if mv.to < 32 {
+                result.squares[mv.to + 8] = NONE;
+            } else {
+                result.squares[mv.to - 8] = NONE;
+            }
         }
 
         result.squares[mv.to] = match mv.promote_to {
@@ -239,6 +322,7 @@ impl Board {
                 _ => (),
             }
         }
+
         result.white_is_active = !result.white_is_active;
         result
     }
