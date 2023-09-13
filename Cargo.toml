@@ -1,7 +1,10 @@
 [package]
 name = "crust"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
+description = "Chess engine written for educational purposes"
+license = "none"
+repository = "https://github.com/mcsim4s/crust"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
