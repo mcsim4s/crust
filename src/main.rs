@@ -10,11 +10,16 @@ fn main() -> io::Result<()> {
     let mut engine = engine::Engine::new();
     loop {
         io::stdin().read_line(&mut buffer)?;
-        if buffer == "quit" {
+        if buffer == "quit\n" {
             break;
         }
-        let command = Command::parse(&buffer.trim())?;
-        engine.execute_uci(command)?;
+        match Command::parse(&buffer.trim()) {
+            Ok(command) => {
+                engine.execute_uci(command)?;
+                buffer.clear();
+            }
+            Err(err) => println!("{}", err)
+        }
         buffer.clear();
     }
     Ok(())
