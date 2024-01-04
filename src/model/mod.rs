@@ -66,6 +66,19 @@ impl Move {
             castle: false,
         }
     }
+    #[allow(dead_code)]
+    pub const NULL: Move = {
+        Move {
+            from: 0,
+            to: 0,
+            promote_to: None,
+            castle: false,
+        }
+    };
+    #[allow(dead_code)]
+    pub fn is_null(&self) -> bool {
+        self.eq(&Move::NULL)
+    }
 }
 
 impl Debug for Move {

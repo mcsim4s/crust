@@ -97,7 +97,10 @@ fn parse_position_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Co
 }
 
 fn parse_go_command(mut split: std::str::SplitWhitespace<'_>) -> Result<Command> {
-    let mut result: Command = Command::Uci;
+    let mut result: Command = Command::Go(GoCommand{
+        white_time: u64::MAX,
+        black_time: u64::MAX
+    });
     while let Some(arg) = split.next() {
         match arg {
             "wtime" => {
