@@ -10,7 +10,7 @@ fn main() -> io::Result<()> {
     let mut engine = engine::Engine::new();
     loop {
         io::stdin().read_line(&mut buffer)?;
-        if buffer == "quit\n" {
+        if buffer.contains("quit") {
             break;
         }
         match Command::parse(&buffer.trim()) {

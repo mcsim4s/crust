@@ -1,9 +1,12 @@
-use super::static_data::*;
+use crate::engine::generation::static_data::*;
 use crate::model::pieces::*;
 use crate::model::*;
 
+mod static_data;
+mod tests;
+
 impl Board {
-    pub fn gen_moves(&self) -> Vec<Move> {
+    pub fn gen_moves(&self, only_captures: bool) -> Vec<Move> {
         self.gen_pseudo_legal_moves()
             .into_iter()
             .filter(|mv| {
@@ -26,6 +29,9 @@ impl Board {
                 } else {
                     !pseudo.into_iter().any(|next_move| next_pos.squares[next_move.to].is_king())
                 }
+            })
+            .filter(|mv| {
+                !only_captures || self.squares[mv.to].is_color(self.inactive_color())
             })
             .collect()
     }
