@@ -1,6 +1,5 @@
 #[cfg(test)]
 use crate::{engine::Engine, uci};
-use crate::engine::searcher::SearchState;
 
 #[test]
 fn perf_test_1() {
@@ -80,31 +79,4 @@ fn perf_test_5() {
     assert_eq!(62_379, engine.performance_test(3));
     //    assert_eq!(2_103_487, engine.performance_test(4));
     //    assert_eq!(89_941_194, engine.performance_test(5));
-}
-
-#[test]
-fn perf_test_6() {
-    let mut engine = Engine::new();
-    engine
-        .execute_uci(uci::Command::SetPosition {
-            position: uci::Position::Fen(String::from("k7/6R1/8/8/8/8/8/6KR w - - 0 1")),
-            moves: vec![],
-        })
-        .unwrap();
-
-    assert_eq!(24, engine.performance_test(1));
-}
-
-#[test]
-fn searcher_test_mate_in_1_1() {
-    let mut engine = Engine::new();
-    engine
-        .execute_uci(uci::Command::SetPosition {
-            position: uci::Position::Fen(String::from("k7/6R1/8/8/8/8/8/6KR w - - 0 1")),
-            moves: vec![],
-        })
-        .unwrap();
-
-    let search = engine.search();
-    assert_eq!("h1h8", search.to_notation())
 }

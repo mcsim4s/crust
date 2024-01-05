@@ -48,10 +48,6 @@ impl Piece for u8 {
         (self & 0b00000111) == piece
     }
 
-    fn without_color(&self) -> u8 {
-        self & 0b00000111
-    }
-
     fn notation(&self) -> char {
         let mut result = '-';
         if self.is_king() {
@@ -77,6 +73,10 @@ impl Piece for u8 {
         } else {
             result
         }
+    }
+
+    fn without_color(&self) -> u8 {
+        self & 0b00000111
     }
 }
 

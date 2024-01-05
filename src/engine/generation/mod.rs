@@ -1,6 +1,9 @@
-use super::static_data::*;
+use crate::engine::generation::static_data::*;
 use crate::model::pieces::*;
 use crate::model::*;
+
+mod static_data;
+mod tests;
 
 impl Board {
     pub fn gen_moves(&self, only_captures: bool) -> Vec<Move> {

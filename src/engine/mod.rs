@@ -1,8 +1,7 @@
 mod generation;
-mod static_data;
-mod tests;
 mod searcher;
 mod evaluation;
+mod ordering;
 
 use crate::model::pieces::Piece;
 use crate::model::*;
