@@ -13,6 +13,7 @@ pub trait Piece {
     fn is_color(&self, color: u8) -> bool;
     fn is_piece(&self, kind: u8) -> bool;
     fn notation(&self) -> char;
+    fn without_color(&self) -> u8;
 
     fn is(&self, kind: u8, color: u8) -> bool {
         self.is_color(color) && self.is_piece(kind)
@@ -45,6 +46,10 @@ impl Piece for u8 {
 
     fn is_piece(&self, piece: u8) -> bool {
         (self & 0b00000111) == piece
+    }
+
+    fn without_color(&self) -> u8 {
+        self & 0b00000111
     }
 
     fn notation(&self) -> char {
@@ -82,18 +87,23 @@ pub fn new(kind: u8, color: u8) -> u8 {
 pub fn pawn(color: u8) -> u8 {
     new(PAWN, color)
 }
+
 pub fn rook(color: u8) -> u8 {
     new(ROOK, color)
 }
+
 pub fn knight(color: u8) -> u8 {
     new(KNIGHT, color)
 }
+
 pub fn bishop(color: u8) -> u8 {
     new(BISHOP, color)
 }
+
 pub fn quieen(color: u8) -> u8 {
     new(QUEEN, color)
 }
+
 pub fn king(color: u8) -> u8 {
     new(KING, color)
 }

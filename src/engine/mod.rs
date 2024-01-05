@@ -81,7 +81,7 @@ impl Engine {
         match depth {
             0 => 0,
             1 => {
-                let moves = board.gen_moves();
+                let moves = board.gen_moves(false);
                 if print {
                     for mv in &moves {
                         println!("{}: 1", mv.to_notation());
@@ -91,7 +91,7 @@ impl Engine {
             }
             other => {
                 let mut result = 0;
-                let moves = board.gen_moves();
+                let moves = board.gen_moves(false);
                 for mv in &moves {
                     let acc = self.performance_test_recursive(&board.make_move(mv), other - 1, false);
                     if print {
@@ -103,6 +103,4 @@ impl Engine {
             }
         }
     }
-
-
 }
